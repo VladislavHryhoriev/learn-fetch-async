@@ -244,7 +244,7 @@
 // 	.then(responses => Promise.all(responses.map(r => r.json())))
 // 	.then(users => users.forEach(user => console.log(user.name)));
 
-/// Promise.allSettled(promises) (добавлен недавно) – ждёт, пока все промисы завершатся и возвращает их результаты в виде массива с объектами, у каждого объекта два свойства:
+/// Promise.allSettled(promises) – ждёт, пока все промисы завершатся и возвращает их результаты в виде массива с объектами, у каждого объекта два свойства:
 /// * state: "fulfilled", если выполнен успешно или "rejected", если ошибка,
 /// * value – результат, если успешно или reason – ошибка, если нет.
 
@@ -282,25 +282,147 @@
 
 /// Promisification
 
-function loadScript(src, callback) {
-	let script = document.createElement('script');
-	script.src = src;
+// function loadScript(src, callback) {
+// 	let script = document.createElement('script');
+// 	script.src = src;
 
-	script.onload = () => callback(null, script);
-	script.onerror = () => callback(new Error(`Script error ${src}`));
+// 	script.onload = () => callback(null, script);
+// 	script.onerror = () => callback(new Error(`Script error ${src}`));
 
-	document.head.append(script);
-}
+// 	document.body.append(script);
+// }
 
 // -> to Promise
 
-let loadScriptPromise = src => {
-	return new Promise((resolve, reject) => {
-		loadScript(src, (err, script) => {
-			if (err) reject(err)
-			else resolve(script);
-		});
-	});
-};
+// let loadScriptPromise = src => {
+// 	return new Promise((resolve, reject) => {
+// 		loadScript(src, (err, script) => {
+// 			if (err) reject(err)
+// 			else resolve(script);
+// 		});
+// 	});
+// };
 
-loadScriptPromise('./promise-chaining/one.js').then();
+// loadScriptPromise('./promise-chaining/one.js').then();
+
+///
+
+// function promisify(f) {
+// 	return function (...args) {
+// 		return new Promise((resolve, reject) => {
+// 			function callback(err, result) {
+// 				if (err) reject(err)
+// 				else resolve(result);
+// 			}
+
+// 			args.push(callback);
+// 			f.call(this, ...args);
+// 		});
+// 	}
+// }
+
+// let loadScriptPromise = promisify(loadScript);
+// loadScriptPromise().then();
+
+/// Async | Await
+
+// async function showAvatar() {
+// 	let response = await fetch('./promise-chaining/user.json');
+// 	let user = await response.json();
+
+// 	let githubResponse = await fetch(`https://api.github.com/users/${user.name}`);
+// 	let githubUser = await githubResponse.json();
+
+// 	let img = document.createElement('img');
+// 	img.src = githubUser.avatar_url;
+// 	img.classList.add("promise-avatar");
+// 	document.body.append(img);
+
+// 	await new Promise((resolve, reject) => setTimeout(resolve, 3000))
+
+// 	img.remove();
+
+// 	return githubUser;
+// };
+
+/// TASKS:
+
+// function loadJson(url) {
+// 	return fetch(url)
+// 		.then(response => {
+// 			if (response.status == 200) {
+// 				return response.json();
+// 			} else {
+// 				throw new Error(response.status);
+// 			}
+// 		})
+// }
+
+// loadJson('no-such-user.json') // (3)
+// 	.catch(alert); // Error: 404
+
+// =>
+
+// async function loadJson(url) {
+// 	let response = await fetch(url);
+// 	if (response.status == 200) {
+// 		return await response.json();
+// 	}
+// 	throw new Error(response.status);
+// }
+
+// loadJson('no-such-user.json')
+// 	.catch(alert)
+
+///
+
+// class HttpError extends Error {
+// 	constructor(response) {
+// 		super(`${response.status} for ${response.url}`);
+// 		this.name = 'HttpError';
+// 		this.response = response;
+// 	}
+// }
+
+// async function loadJson(url) {
+// 	const response = await fetch(url);
+// 	if (response.status == 200) {
+// 		return response.json();
+// 	} else {
+// 		throw new HttpError(response);
+// 	}
+// }
+
+// async function demoGithubUser() {
+// 	let user;
+
+// 	while (true) {
+// 		let name = prompt("Insert login?", "iliakan");
+
+// 		try {
+// 			user = await loadJson(`https://api.github.com/users/${name}`);
+// 			break;
+// 		} catch (err) {
+// 			if (err instanceof HttpError && err.response.status == 404) {
+// 				alert("Unknown user, try again.");
+// 			} else {
+// 				throw err;
+// 			}
+// 		}
+// 	}
+
+// 	alert(`Full name: ${user.name}`);
+// 	return user;
+// }
+
+///
+
+// async function wait() {
+// 	await new Promise(resolve => setTimeout(resolve, 1000));
+
+// 	return 10;
+// }
+
+// function f() {
+// 	wait().then(result => alert(result));
+// }
